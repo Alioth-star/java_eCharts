@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>ECharts map Demo</title>
+	</head>
+
+	<body>
+		<div id="map-wrap">
+			<!-- 这里以后是地图 -->
+		</div>
+	</body>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=78hQX88IBEYa78XqOHE52w9ouaYFobrM"></script>
+	<script src="/js/echarts.min.js"></script>
+
+	<script src="/js/bmap.min.js"></script>
+	<script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+	<script>
+
+		var list = [];
+
+		var xy = [];
+
+		var data = [{}];
+		var data1 = [{}];
+
+
+		$(document).ready(function () {
+			//alert("我执行了");
+			$.get('http://localhost:8080/syd/all',function (response) {
+				list = response.data;
+				for (let i = 0; i < list.length; i++) {
+					xy[0] = list[i].xvalue;
+					xy[1] = list[i].yvalue;
+					data[i] = ({name: list[i].name, value: xy,text: list[i].text});
+					xy=[];
+				}
+
+				var mapBox = document.getElementById('map-wrap');
+				var w = document.documentElement.clientWidth;
+				var h = document.documentElement.clientHeight;
+				mapBox.style.width = w + 'px';
+				mapBox.style.height = h + 'px';
+				var bmapChart = echarts.init(document.getElementById('map-wrap'));
+
+				var convertData = function(data) {
+					var res = [];
+					for(var i = 0; i < data.length; i++) {
+						var geoCoord = data[i].name;
+						if(geoCoord) {
+							res.push({
+								name: data[i].name,
+								value: data[i].value,
+								text:data[i].text
+							});
+						}
+					}
+					console.log(res);
+					return res;
+				};
+				var option = {
+					title: {
+						textStyle: {
+							color: '#fff'
+						},
+						subtextStyle: {
+							color: '#fff'
+						},
+						text: '散点图',
+						subtext: 'data from 生源地',
+						sublink: 'http://www.xs.in',
+						left: 'center'
+					},
+					tooltip: {
+						trigger: 'item',
+						confine:true,
+						formatter: function(item){
+							return "名字："+item.name+"<br/>经纬度: "+item.value+"<br/>籍贯: "+item.data.text;
+						}
+					},
+					bmap: {
+						center: [104.067923463, 30.6799428454], // 中心位置坐标
+						zoom: 7, // 地图缩放比例
+						roam: true, // 开启用户缩放
+						roam: true, // 允许缩放
+
+						mapStyle: { // 百度地图自定义样式
+							styleJson: [{
+								"featureType": "land",// 陆地
+								"elementType": "all",
+								"stylers": {
+									"color": "#073763"
+								}
+							},{
+								"featureType": "water",// 水系
+								"elementType": "all",
+								"stylers": {
+									"color": "#073763",
+									"lightness": -54
+								}
+							},{
+								"featureType": "highway",// 国道与高速
+								"elementType": "all",
+								"stylers": {
+									"color": "#45818e"
+								}
+							},{
+								"featureType": "boundary",// 边界线
+								"elementType": "all",
+								"stylers": {
+									"color": "#ffffff",
+									"lightness": -62,
+									"visibility": "on"
+								}
+							},{
+								"featureType": "label",// 行政标注
+								"elementType": "labels.text.fill",
+								"stylers": {
+									"color": "#ffffff",
+									"visibility": "on"
+								}
+							},{
+								"featureType": "label",
+								"elementType": "labels.text.stroke",
+								"stylers": {
+									"color": "#444444",
+									"visibility": "on"
+								}
+							}
+							]
+						}
+					},
+					series: [{
+						name:  'top2',
+						type: 'effectScatter',
+						coordinateSystem: 'bmap',
+						data:convertData(data),
+						legendHoverLink:true,       //是否启用图例 hover 时的联动高亮。
+						hoverAnimation:true,        //是否开启鼠标 hover 的提示动画效果。
+						effectType:"ripple",        //特效类型，目前只支持涟漪特效'ripple'。
+						showEffectOn:"render",      //配置何时显示特效。可选：'render' 绘制完成后显示特效。'emphasis' 高亮（hover）的时候显示特效。
+						rippleEffect:{              //涟漪特效相关配置。
+							period:8,               //动画的时间。
+							scale:3.5,              //动画中波纹的最大缩放比例。
+							brushType:'fill',      //波纹的绘制方式，可选 'stroke' 和 'fill'。
+						},
+
+						symbolSize:'20',
+						label: {
+							normal: {
+								formatter: '{b}',
+								position: 'left',
+								show: true
+							}
+						},
+						itemStyle: {
+							normal: {
+								color: '#f4e925',
+								shadowBlur: 10,
+								shadowColor: '#333'
+							}
+						},
+						zlevel: 1
+					}]
+
+				};
+
+				console.log(data);
+				bmapChart.setOption(option);
+
+			});
+			//console.log(data)
+		});
+	</script>
+
+</html>
